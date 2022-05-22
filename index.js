@@ -19,8 +19,23 @@ async function run() {
       const productCollection = client.db("robotic").collection("products");
 
 // ----------get all product---------
-        
+    app.get("/product",async(req,res)=>{
+        const query = {};
+        const cursor = productCollection.find(query);
+        const products = await cursor.toArray();
+        res.send(products);
+    })
  
+
+// ----------get oneproduct--------- 
+        app.get("/productid/:Id",async(req,res)=>{
+            const Id = req.params.Id
+            const query = {_id:ObjectId(Id)};
+            const getOneProduct = await productCollection.findOne(query);
+            res.send(getOneProduct)
+        })
+
+
     } 
     finally {
     
