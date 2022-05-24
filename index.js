@@ -84,11 +84,11 @@ app.get('/order',verifyJWT,async(req,res)=>{
 
 })
 /******delete order by email********/
-app.delete('/order/:email',async(req,res)=>{
-  const email = req.params.email;
-  const query = {email:email}
-  const result = await orderCollection.deleteOne(query);
-  return res.send(result);
+app.delete("/removeOrder/:Id",verifyJWT,verifyAdmin,async(req,res)=>{
+  const Id = req.params.Id
+  const query = {_id:ObjectId(Id)};
+  const result = await  orderCollection.deleteOne(query);
+  res.send(result)
 })
 
 /******update user********/
@@ -130,13 +130,24 @@ app.get('/user',verifyJWT,async(req,res)=>{
 })
 
 /******add product********/
-app.post("/addproduct",async(req,res)=>{
-  const inventory = req.body;
-  const getInventory = await productCollection.insertOne(inventory);
-  res.send(getInventory)
+app.post('/addProduct',verifyJWT,verifyAdmin,async(req,res)=>{
+  const doctor = req.body;
+  const result = await productCollection.insertOne(doctor);
+  return res.send(result);
 })
 
+app.get('/addProduct',verifyJWT,verifyAdmin,async(req,res)=>{
+  const doctor = await productCollection.find().toArray();
+  res.send(doctor)
+})
 
+  app.delete("/addProduct/:Id",verifyJWT,verifyAdmin,async(req,res)=>{
+    const Id = req.params.Id
+    const query = {_id:ObjectId(Id)};
+    const result = await productCollection.deleteOne(query);
+    res.send(result)
+})
+ 
 
     }
     finally {
