@@ -21,7 +21,6 @@ async function run() {
       const userCollection = client.db("robotic").collection("user");
 
 
-
 /******verify JWT********/
 function verifyJWT(req,res,next){
   const authHeader =req.headers.authorization;
@@ -38,7 +37,16 @@ jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
   next();
 });
 }
-
+// /******verifyAddmin ********/
+ const verifyAdmin=async(req,res,next)=>{
+   const requerster = req.decoded.email;
+   const requersterAccount = await userCollection.findOne({email:requerster});
+   if(requersterAccount.role==='admin'){
+ next();
+   }else{
+     res.status(403).send({message:"you are nont admin"})
+   }
+ }
 // ----------get all product---------
     app.get("/product",async(req,res)=>{
         const query = {};
@@ -98,10 +106,35 @@ app.put('/user/:email',async(req,res)=>{
   res.send({result,token:token});
 })
 
+//ADMIN ROLL
+app.put('/user/admin/:email',verifyJWT,verifyAdmin,async(req,res)=>{
+  const email = req.params.email;
+    const filter = {email:email};
+    const updateDoc = {
+      $set:{role:"admin"},
+    };
+    const result = await userCollection.updateOne(filter, updateDoc);
+    res.send(result);
+ 
+})
+ app.get('/admin/:email',async(req,res)=>{
+   const email = req.params.email;
+   const user = await userCollection.findOne({email:email});
+   const isAdmin =user.role==='admin';
+   res.send({admin:isAdmin})
+ })
+/******get all user********/
+app.get('/user',verifyJWT,async(req,res)=>{
+  const user= await userCollection.find().toArray();
+  res.send(user)
+})
 
-
-
-
+/******add product********/
+app.post("/addproduct",async(req,res)=>{
+  const inventory = req.body;
+  const getInventory = await productCollection.insertOne(inventory);
+  res.send(getInventory)
+})
 
 
 
