@@ -59,12 +59,12 @@ jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
     })
  
 // ----------get oneproduct--------- 
-        app.get("/productid/:Id",async(req,res)=>{
-            const Id = req.params.Id
-            const query = {_id:ObjectId(Id)};
-            const getOneProduct = await productCollection.findOne(query);
-            res.send(getOneProduct)
-        })
+    app.get("/productid/:Id",async(req,res)=>{
+        const Id = req.params.Id
+         const query = {_id:ObjectId(Id)};
+         const getOneProduct = await productCollection.findOne(query);
+         res.send(getOneProduct)
+      })
   
 /******get userorder information sent backend********/
 app.post('/order',async(req,res)=>{
@@ -72,7 +72,13 @@ app.post('/order',async(req,res)=>{
   const result = await  orderCollection.insertOne(order );
   res.send(result)
 })
-
+// ----------get all order---------
+app.get("/orders",async(req,res)=>{
+  const query = {};
+  const cursor = orderCollection.find(query);
+  const order = await cursor.toArray();
+  res.send(order);
+})
 /******show per user order by email********/
 app.get('/order',verifyJWT,async(req,res)=>{
   const userEmail = req.query.userEmail;
@@ -198,6 +204,16 @@ app.patch('/orderId/:id',verifyJWT,async(req,res)=>{
   res.send(updatedDoc)
 })
 
+// //Chnage payment
+// app.put('/changepaymnet',verifyJWT,async(req,res)=>{
+//   const options = { upsert: true };
+//     const updateDoc = {
+//       $set:{role:"admin"},
+//     };
+//     const result = await userCollection.updateOne(updateDoc, options );
+//     res.send(result);
+ 
+// })
     }
     finally {
     
