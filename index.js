@@ -24,6 +24,7 @@ async function run() {
       const paymentCollection = client.db("robotic").collection("payment");
 
 
+
 /******verify JWT********/
 function verifyJWT(req,res,next){
   const authHeader =req.headers.authorization;
@@ -132,16 +133,23 @@ app.put('/user/admin/:email',verifyJWT,verifyAdmin,async(req,res)=>{
     res.send(result);
  
 })
- app.get('/admin/:email',async(req,res)=>{
+ app.get('/admin/:email',verifyJWT,verifyAdmin,async(req,res)=>{
    const email = req.params.email;
    const user = await userCollection.findOne({email:email});
    const isAdmin =user.role==='admin';
    res.send({admin:isAdmin})
  })
 /******get all user********/
-app.get('/user',verifyJWT,async(req,res)=>{
+app.get('/user',verifyJWT,verifyAdmin,async(req,res)=>{
   const user= await userCollection.find().toArray();
   res.send(user)
+})
+/******delete user by email********/
+app.delete('/removeuser/:email',verifyJWT,verifyAdmin,async(req,res)=>{
+  const email = req.params.email;
+  const query = {email:email}
+  const result = await userCollection.deleteOne(query);
+  return res.send(result);
 })
 
 /******add product********/
@@ -176,7 +184,6 @@ app.get('/review',async(req,res)=>{
 /******payment get way to send payment/CheckOutForm.js********/
 app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
   const order = req.body;
-  console.log(order)
   const price = order.price;
   const amount = price*100;
   const paymentIntent = await stripe.paymentIntents.create({
@@ -204,16 +211,26 @@ app.patch('/orderId/:id',verifyJWT,async(req,res)=>{
   res.send(updatedDoc)
 })
 
-// //Chnage payment
-// app.put('/changepaymnet',verifyJWT,async(req,res)=>{
-//   const options = { upsert: true };
-//     const updateDoc = {
-//       $set:{role:"admin"},
-//     };
-//     const result = await userCollection.updateOne(updateDoc, options );
-//     res.send(result);
- 
-// })
+ /******get profile data ********/
+app.get('/profile/:email',async(req,res)=>{
+  const email = req.params.email;
+  const filter = {email:email};
+  const result = await userCollection.findOne(filter);
+  res.send(result)
+})
+/******update Profile ********/
+app.put('/updateuser',async(req,res)=>{
+  const user = req.body;
+  const email = user.email;
+  const filter = {email:email};
+  const options = {upsert:true};
+  const updateDoc = {
+    $set:user,
+  };
+  const result = await userCollection.updateOne(filter, updateDoc, options);
+  res.send(result)
+})
+
     }
     finally {
     
